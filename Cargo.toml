@@ -1,0 +1,7 @@
+[package]
+name = "resize-images"
+version = "0.1.0"
+authors = ["Jonathan Krän <jonathan.kran1@gmail.com>"]
+
+[dependencies]
+image = "*"
