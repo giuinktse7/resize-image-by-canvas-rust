@@ -1,6 +1,5 @@
 extern crate image;
 
-
 use std::fs;
 use std::io;
 use std::fs::File;
@@ -19,11 +18,14 @@ pub struct ImageFile {
 }
 
 impl ImageFile {
-    pub fn new(entry: &fs::DirEntry) -> ImageFile {
+    pub fn new(entry: &fs::DirEntry) -> Result<ImageFile, image::ImageError> {
         let filename = entry.file_name().to_str().unwrap().to_owned();
-        let image = ImageType::Dynamic(image::open(&entry.path()).unwrap());
+        let image_file = image::open(&entry.path());
 
-        ImageFile { image, filename }
+        match image_file {
+            Ok(image) => Ok(ImageFile { image: ImageType::Dynamic(image), filename }),
+            Err(err) => Err(err)
+        }
     }
 
     pub fn dimensions(&self) -> Dimension {
@@ -115,15 +117,19 @@ fn allowed_filetype(entry: &fs::DirEntry) -> bool {
     }
 }
 
-pub fn load_images(path: &Path) -> Result<Vec<ImageFile>, FileError> {
+pub fn load_images(path: &Path) -> Vec<ImageFile> {
     match fs::read_dir(path) {
         Ok(files) => {
-            Ok(files.map(|file| file.unwrap())
+            files.map(|file| file.unwrap())
                     .filter(|entry| allowed_filetype(entry))
                     .map(|entry| ImageFile::new(&entry))
-                    .collect::<Vec<ImageFile>>())
+                    .filter_map(|result| result.ok())
+                    .collect()
         },
 
-        Err(err) => Err(FileError::NoFile(err))
+        Err(_) => {
+            fs::create_dir(path).unwrap();
+            vec![]
+        }
     }
 }

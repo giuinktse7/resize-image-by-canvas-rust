@@ -11,9 +11,8 @@ const ASPECT_RATIO: f32 = 0.75;
 fn main() {
     let start = Instant::now();
     let (path, output_path) = (Path::new("images"), Path::new("resized-images"));
-    match load_images(path) {
-        Ok(images) => for image in images { resize_image(image, output_path); },
-        _ => println!("Failed to load images."),
+    for image in load_images(path) {
+        resize_image(image, output_path);
     }
 
     let elapsed = start.elapsed();
@@ -41,13 +40,13 @@ fn get_center_offset(first: &Dimension, second: &Dimension) -> Point {
 
 fn scale_to_aspect_ratio(aspect_ratio: f32, dimensions: &Dimension) -> Dimension {
     let quotient = dimensions.width as f32 / dimensions.height as f32;
-
-    match quotient < aspect_ratio {
-        true => Dimension {
+    if quotient < aspect_ratio {
+        Dimension {
             width: (dimensions.height as f32 * ASPECT_RATIO).floor() as u32,
             height: dimensions.height
-        },
-        false => Dimension {
+        }
+    } else {
+        Dimension {
             width: dimensions.width, 
             height: (dimensions.width as f32 * (1.0 / ASPECT_RATIO)).floor() as u32
         }
