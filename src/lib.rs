@@ -93,6 +93,23 @@ pub struct Dimension {
     pub height: u32
 }
 
+impl Dimension {
+    pub fn to_aspect_ratio(&self, aspect_ratio: f32) -> Self {
+        let quotient = self.width as f32 / self.height as f32;
+        if quotient < aspect_ratio {
+            Dimension {
+                width: (self.height as f32 * aspect_ratio).floor() as u32,
+                height: self.height
+            }
+        } else {
+            Dimension {
+                width: self.width, 
+                height: (self.width as f32 * (1.0 / aspect_ratio)).floor() as u32
+            }
+        }
+    }
+}
+
 fn create_file(path: &Path, filename: &str) {
     if !path.exists() {
         fs::create_dir(path).unwrap();        
